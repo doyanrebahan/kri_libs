@@ -18,7 +18,9 @@ setup(
     packages=find_packages(),
     install_requires=[
         'requests',
-        'Django >= 2.2'
+        'Django >= 2.2',
+        "djangorestframework",
+        "simplejson"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
