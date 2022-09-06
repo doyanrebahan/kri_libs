@@ -6,6 +6,7 @@ from kri_lib.conf.settings import settings
 from rest_framework import exceptions
 from rest_framework.authentication import BaseAuthentication, get_authorization_header
 
+from .exceptions import CrossDomainError
 from .jwt import jwt_decode_handler
 
 
@@ -53,6 +54,10 @@ class KRIJWTAuthentication(BaseAuthentication):
             raise exceptions.AuthenticationFailed(msg)
         except jwt.InvalidTokenError:
             raise exceptions.AuthenticationFailed()
+
+        origin = request.headers.get('Origin')
+        if payload.get('domain') != origin:
+            raise CrossDomainError()
 
         user = self.authenticate_credentials(payload)
 

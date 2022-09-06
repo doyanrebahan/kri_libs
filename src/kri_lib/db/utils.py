@@ -1,4 +1,3 @@
-from uuid import UUID
 
 from .connection import database
 from .exceptions import UserNotFoundError
@@ -11,7 +10,7 @@ def get_user(query: dict) -> dict:
     return user
 
 
-def get_user_by_uuid(uuid: UUID) -> dict:
+def get_user_by_uuid(uuid: str) -> dict:
     return get_user(
         query={'user_uuid': uuid}
     )

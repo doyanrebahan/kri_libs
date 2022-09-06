@@ -1,7 +1,5 @@
 import jwt
 from datetime import datetime
-from uuid import UUID
-from typing import Union
 
 from kri_lib.conf.settings import settings
 from kri_lib.db.connection import database
@@ -10,9 +8,7 @@ from kri_lib.db.utils import get_user_by_uuid
 from kri_lib.utils import random_string
 
 
-def _get_user(user_uuid: Union[UUID, str]):
-    if isinstance(user_uuid, str):
-        user_uuid = UUID(user_uuid)
+def _get_user(user_uuid: str):
 
     try:
         user = get_user_by_uuid(user_uuid)
@@ -43,7 +39,7 @@ def _get_user(user_uuid: Union[UUID, str]):
     return user
 
 
-def jwt_encode_handler(user_uuid: Union[UUID, str], payload: dict) -> str:
+def jwt_encode_handler(user_uuid: str, payload: dict) -> str:
     if not payload.get('exp'):
         payload.update({
             'exp': datetime.utcnow() + settings.JWT_AUTH.JWT_EXPIRATION_DELTA
@@ -68,7 +64,7 @@ def jwt_decode_handler(jwt_value: str) -> dict:
     )
     try:
         user = get_user_by_uuid(
-            uuid=UUID(unverified_payload.get('user_uuid'))
+            uuid=unverified_payload.get('user_uuid')
         )
     except UserNotFoundError:
         raise jwt.InvalidTokenError("Invalid token")

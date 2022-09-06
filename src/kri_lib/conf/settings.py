@@ -2,9 +2,7 @@ from datetime import timedelta
 
 from django.conf import settings as django_settings
 from django.core.exceptions import ImproperlyConfigured
-
-from .constants import ServiceConnection
-from .exceptions import SettingsError
+from django.core.signals import setting_changed
 
 
 DEFAULT = {
@@ -17,8 +15,7 @@ DEFAULT = {
     },
     'DATABASES': {
         'default': 'mongodb://rimba:qweqweqwe@localhost:27017/kunci_id'
-    },
-    'SERVICES_CONNECTION': []
+    }
 }
 
 try:
@@ -28,10 +25,7 @@ except ImproperlyConfigured:
 
 # We will centralize settings, so just proxy from settings object
 # or whatever is that. but the final result is proxy this attrs.
-PROXY_SETTINGS = [
-    'SSO_SERVICE_URL',
-    'SSO_AUTH_HEADER'
-]
+PROXY_SETTINGS = []
 
 
 class _BaseSettings:
@@ -66,6 +60,12 @@ class _ProxySettings:
 
 
 def _proxy_from_django_settings():
+    from kri_lib.services.internal.conf import ENABLED_SERVICES_CLASSES
+
+    for services in ENABLED_SERVICES_CLASSES:
+        services.validate_dependencies(django_settings)
+        PROXY_SETTINGS.extend(services.dependencies)
+
     proxy_settings = _ProxySettings(
         proxy=django_settings,
         proxy_settings=PROXY_SETTINGS
@@ -89,12 +89,17 @@ class LibSettings(_BaseSettings):
             user_settings=USER_SETTINGS,
             **kwargs
         )
-        self._validate_settings()
 
-    def _validate_settings(self):
-        for item in self.SERVICES_CONNECTION:
-            if item not in ServiceConnection:
-                raise SettingsError(f'{item} is not valid connection.')
+    def refresh_proxy(self):
+        self._proxy = _proxy_from_django_settings()
 
 
 settings = LibSettings(proxy=_proxy_from_django_settings())
+
+
+def reload_proxy_settings(*args, **kwargs):
+    PROXY_SETTINGS.clear()
+    settings.refresh_proxy()
+
+
+setting_changed.connect(reload_proxy_settings)
