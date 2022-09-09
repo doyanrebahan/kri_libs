@@ -82,3 +82,17 @@ class SSOProxySerializer(ProxySerializer):
         return {
             'Authorization': settings.SSO_AUTH_HEADER
         }
+
+
+class WalletProxySerializer(ProxySerializer):
+
+    def get_proxy_host(self):
+        return settings.WALLET_SERVICE_URL
+
+    def get_url_proxy(self) -> str:
+        return urljoin(self.get_proxy_host(), self.get_proxy_route())
+
+    def get_request_headers(self) -> dict:
+        return {
+            'Authorization': settings.WALLET_AUTH_HEADER
+        }

@@ -1,7 +1,6 @@
 from urllib.parse import urljoin
 import requests
-
-from kri_lib.conf import settings
+from rest_framework import status
 
 
 class VirtualModel:
@@ -25,6 +24,9 @@ class VirtualModel:
     def __str__(self):
         return self.unique_id
 
+    class DoesNotExist(Exception):
+        pass
+
     def get_url(self):
         """
         Override this method
@@ -40,6 +42,9 @@ class VirtualModel:
             url=path,
             headers=self.get_request_headers()
         )
+        if response.status_code == status.HTTP_404_NOT_FOUND:
+            raise self.DoesNotExist(f'{self.__class__.__name__} matching query does not exist.')
+
         data = response.json()
         return data
 

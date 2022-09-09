@@ -1,4 +1,5 @@
 import jwt
+from calendar import timegm
 from datetime import datetime
 
 from kri_lib.conf.settings import settings
@@ -39,12 +40,22 @@ def _get_user(user_uuid: str):
     return user
 
 
-def jwt_encode_handler(user_uuid: str, payload: dict) -> str:
-    if not payload.get('exp'):
-        payload.update({
-            'exp': datetime.utcnow() + settings.JWT_AUTH.JWT_EXPIRATION_DELTA
-        })
+def jwt_payload_handler(payload):
+    new_payload = {
+        **payload,
+        'exp': datetime.utcnow() + settings.JWT_AUTH.JWT_EXPIRATION_DELTA
+    }
 
+    if settings.JWT_AUTH.ALLOW_REFRESH:
+        new_payload.update({
+            'orig_iat': timegm(
+                datetime.utcnow().utctimetuple()
+            )
+        })
+    return new_payload
+
+
+def jwt_encode_handler(user_uuid: str, payload: dict) -> str:
     user = _get_user(user_uuid)
     secret_key = f'{settings.JWT_AUTH.SECRET_KEY}||{user.get("jwt_secret")}'
     return jwt.encode(

@@ -12,6 +12,7 @@ class User(VirtualModel):
     phone_number: str
     referral_from: str
     status_kyc: str
+    is_active: bool
 
     def __str__(self):
         return self.email

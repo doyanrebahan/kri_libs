@@ -11,7 +11,9 @@ DEFAULT = {
         'SECRET_KEY': '',
         'JWT_EXPIRATION_DELTA': timedelta(seconds=300),
         'JWT_ALGORITHM': 'HS256',
-        'JWT_VERIFY_EXPIRATION': True
+        'JWT_VERIFY_EXPIRATION': True,
+        'ALLOW_REFRESH': True,
+        'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7)
     },
     'DATABASES': {
         'default': 'mongodb://rimba:qweqweqwe@localhost:27017/kunci_id'
