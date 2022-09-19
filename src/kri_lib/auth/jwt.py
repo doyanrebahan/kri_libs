@@ -78,12 +78,15 @@ def jwt_decode_handler(jwt_value: str) -> dict:
             uuid=unverified_payload.get('user_uuid')
         )
     except UserNotFoundError:
+        print(f"UserNotFoundError: {unverified_payload.get('user_uuid')}")
         raise jwt.InvalidTokenError("Invalid token")
 
     options = {
         'verify_exp': settings.JWT_AUTH.JWT_VERIFY_EXPIRATION
     }
     secret_key = f'{settings.JWT_AUTH.SECRET_KEY}||{user.get("jwt_secret")}'
+    print(f'SECRET_KEY: {secret_key}')
+    print(jwt_value)
     return jwt.decode(
         jwt=jwt_value,
         key=secret_key,
