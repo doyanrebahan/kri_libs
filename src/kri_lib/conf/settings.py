@@ -16,7 +16,14 @@ DEFAULT = {
         'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=7)
     },
     'DATABASES': {
-        'default': 'mongodb://rimba:qweqweqwe@localhost:27017/kunci_id'
+        'default': ''
+    },
+    'LOGGING': {
+        'SERVICE_NAME': '',
+        'DATABASE': '',
+        'SLACK': {
+            'HOOKS_URL': ''
+        }
     }
 }
 

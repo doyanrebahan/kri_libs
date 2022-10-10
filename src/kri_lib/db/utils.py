@@ -1,10 +1,10 @@
 
-from .connection import database
+from .connection import connection
 from .exceptions import UserNotFoundError
 
 
 def get_user(query: dict) -> dict:
-    user = database.user.find_one(query)  # type: dict
+    user = connection['default'].user.find_one(query)  # type: dict
     if not user:
         raise UserNotFoundError(f"Cannot find user with: {query}")
     return user

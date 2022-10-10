@@ -3,7 +3,7 @@ from calendar import timegm
 from datetime import datetime
 
 from kri_lib.conf.settings import settings
-from kri_lib.db.connection import database
+from kri_lib.db.connection import connection
 from kri_lib.db.exceptions import UserNotFoundError
 from kri_lib.db.utils import get_user_by_uuid
 from kri_lib.utils import random_string
@@ -24,12 +24,12 @@ def _get_user(user_uuid: str):
             'jwt_secret': user_secret_key
         }
 
-        database.user.insert_one(user)
+        connection['default'].user.insert_one(user)
     else:
         user_secret_key = user.get("jwt_secret")
         if not user_secret_key:
             user_secret_key = generate_jwt_secret()
-            database.user.update_one(
+            connection['default'].user.update_one(
                 {
                     'user_uuid': user_uuid
                 },
@@ -97,7 +97,7 @@ def jwt_decode_handler(jwt_value: str) -> dict:
 
 def generate_jwt_secret():
     jwt_secret = random_string(50)
-    is_exists = database.user.find_one({'jwt_secret': jwt_secret})
+    is_exists = connection['default'].user.find_one({'jwt_secret': jwt_secret})
     if is_exists:
         return generate_jwt_secret()
     return jwt_secret

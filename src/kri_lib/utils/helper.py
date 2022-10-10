@@ -2,10 +2,11 @@ import traceback
 from json.decoder import JSONDecodeError
 from urllib.parse import urljoin
 
-import requests
 from django.conf import settings
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.status import is_client_error
+
+from kri_lib.utils import requests
 
 
 class RequestHelper:

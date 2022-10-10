@@ -1,15 +1,39 @@
-try:
-    """
-    NOTE: not all services need db connection.
-    so we didn't include pymongo in package requirements.
-    """
-    from pymongo import MongoClient
-except ImportError:
-    raise ImportError("pymongo is required for using db connection.")
+from pymongo import MongoClient
 
 from kri_lib.conf.settings import settings
 
+"""
+TODO: Implement class Connection with magic method slicing.
+connection = Connection()
+connection['log']
+"""
 
-mongo_connection = MongoClient(settings.DATABASES.get('default'), uuidRepresentation='standard')
 
-database = mongo_connection.get_database()
+class Connections:
+    """
+    Lazy db connections.
+    """
+
+    def __init__(self):
+        self._db_conn_mapping = {
+            'default': settings.DATABASES.get('default'),
+            'log': settings.LOGGING.get('DATABASE')
+        }
+        self.db_connections = {}
+
+    def __getitem__(self, item):
+
+        if isinstance(item, slice):
+            raise AttributeError('cannot slice db connections.')
+        if item not in self._db_conn_mapping:
+            raise ValueError(f'{item} is not valid connection.')
+
+        if item not in self.db_connections:
+            self.db_connections[item] = MongoClient(
+                self._db_conn_mapping[item],
+                uuidRepresentation='standard'
+            ).get_database()
+        return self.db_connections[item]
+
+
+connection = Connections()

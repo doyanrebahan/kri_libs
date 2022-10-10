@@ -1,4 +1,5 @@
 import random
+import re
 import string
 from requests.models import PreparedRequest
 
@@ -18,3 +19,7 @@ def add_query_params(url: str, params: dict) -> str:
     request = PreparedRequest()
     request.prepare_url(url, params)
     return request.url
+
+
+def pascal_to_snake_case(name):
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', name).lower()
