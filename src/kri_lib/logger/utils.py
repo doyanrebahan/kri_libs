@@ -1,10 +1,12 @@
 import json
 import re
 from datetime import datetime
+from pathlib import Path
 from subprocess import check_output
 from traceback import TracebackException
 from typing import Dict
 
+from django.conf import settings as django_settings
 from kri_lib.conf import settings
 from kri_lib.core.globals import GLOBALS
 from kri_lib.db.connection import connection
@@ -77,16 +79,19 @@ def get_git_branch() -> str:
 
 
 def get_git_blame_email(file_path: str, line_number: str):
-    commands = [
-        'git',
-        'blame',
-        '--show-email',
-        f'-L{line_number},{line_number}',
-        '--',
-        file_path
-    ]
-    proc = check_output(commands).decode()
-    match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', proc)
-    if match:
-        return match.group(0)
+    root = Path(django_settings.BASE_DIR)
+    child = Path(file_path)
+    if root in child.parents:
+        commands = [
+            'git',
+            'blame',
+            '--show-email',
+            f'-L{line_number},{line_number}',
+            '--',
+            file_path
+        ]
+        proc = check_output(commands).decode()
+        match = re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', proc)
+        if match:
+            return match.group(0)
     return "Unknown"

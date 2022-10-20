@@ -18,6 +18,10 @@ class BaseKunciLogMiddleware:
         # Code to be executed for each request before
         # the view (and later middleware) are called.
         request.api_id = self.get_api_id(request)
+
+        if not request.api_id:
+            return self.get_response(request)
+
         GLOBALS.set('API_ID', request.api_id)
         log = self.record(request)
         response = self.get_response(request)
@@ -46,7 +50,7 @@ class BaseKunciLogMiddleware:
         log.method = request.method
         log.headers = request.headers
         if request.method == 'GET':
-            log.payload = request.params
+            log.payload = request.GET
         else:
             log.payload = get_request_body(request.body)
         return log

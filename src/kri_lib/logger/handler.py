@@ -40,7 +40,7 @@ class KunciDBLogHandler(Handler):
         log.method = request.method
         log.headers = request.headers
         if request.method == 'GET':
-            log.payload = request.params
+            log.payload = request.GET
         else:
             log.payload = get_request_body(request.body)
         stack_traces = self.format(record)
