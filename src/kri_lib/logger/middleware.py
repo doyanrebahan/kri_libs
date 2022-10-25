@@ -52,7 +52,7 @@ class BaseKunciLogMiddleware:
         if request.method == 'GET':
             log.payload = request.GET
         else:
-            log.payload = get_request_body(request.body)
+            log.payload = get_request_body(request)
         return log
 
 

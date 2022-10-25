@@ -20,13 +20,8 @@ def generate_api_id():
     )
 
 
-def get_request_body(body):
-    if isinstance(body, bytes):
-        body = body.decode()
-    try:
-        body = json.loads(body)
-    except json.JSONDecodeError:
-        body = str(body)
+def get_request_body(request):
+    body = getattr(request, request.method)
     return body
 
 

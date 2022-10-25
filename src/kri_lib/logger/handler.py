@@ -42,11 +42,14 @@ class KunciDBLogHandler(Handler):
         if request.method == 'GET':
             log.payload = request.GET
         else:
-            log.payload = get_request_body(request.body)
+            log.payload = get_request_body(request)
         stack_traces = self.format(record)
         log.stack_traces = stack_traces.split('\n')
         log.save()
-        exc_class, exc_instance, tb = record.exc_info
+        try:
+            exc_class, exc_instance, tb = record.exc_info
+        except TypeError:
+            return log
         if not isinstance(exc_instance, APIException):
             notify_to_slack(exc_instance, tb, stack_traces, request.get_full_path())
         return log
