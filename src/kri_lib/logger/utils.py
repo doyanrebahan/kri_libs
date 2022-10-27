@@ -1,4 +1,3 @@
-import json
 import re
 from datetime import datetime
 from pathlib import Path
@@ -21,7 +20,12 @@ def generate_api_id():
 
 
 def get_request_body(request):
-    body = getattr(request, request.method)
+    try:
+        body = getattr(request, request.method)
+    except AttributeError:
+        # TODO: handle this shit things:
+        #  request.PUT, request.PATCH doesn't exist in request.method
+        return {}
     return body
 
 
