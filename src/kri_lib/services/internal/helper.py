@@ -1,6 +1,6 @@
 from urllib.parse import urlencode, urlparse
 
-import requests
+from kri_lib.utils import requests
 from rest_framework.request import Request
 from rest_framework.response import Response
 
