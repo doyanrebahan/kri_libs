@@ -96,3 +96,31 @@ class WalletProxySerializer(ProxySerializer):
         return {
             'Authorization': settings.WALLET_AUTH_HEADER
         }
+
+
+class CommerceProxySerializer(ProxySerializer):
+
+    def get_proxy_host(self):
+        return settings.COMMERCE_SERVICE_URL
+
+    def get_url_proxy(self) -> str:
+        return urljoin(self.get_proxy_host(), self.get_proxy_route())
+
+    def get_request_headers(self) -> dict:
+        return {
+            'Authorization': settings.COMMERCE_AUTH_HEADER
+        }
+
+
+class PaymentProxySerializer(ProxySerializer):
+
+    def get_proxy_host(self):
+        return settings.PAYMENT_SERVICE_URL
+
+    def get_url_proxy(self) -> str:
+        return urljoin(self.get_proxy_host(), self.get_proxy_route())
+
+    def get_request_headers(self) -> dict:
+        return {
+            'Authorization': settings.PAYMENT_AUTH_HEADER
+        }
