@@ -10,6 +10,9 @@ class BaseKunciLogMiddleware:
     Middleware for initializing API ID.
     """
 
+    SAFE_KEY_HEADER = ['Authorization']
+    SAFE_KEY_BODY = ['password']
+
     def __init__(self, get_response):
         self.get_response = get_response
         # One-time configuration and initialization.
@@ -37,6 +40,12 @@ class BaseKunciLogMiddleware:
     def get_api_id(self, request):
         raise NotImplementedError('get_api_id() must be overridden.')
 
+    def to_preserve(self, payload, safe_keys):
+        for key in safe_keys:
+            if key in payload.keys():
+                payload[key] = '*'*5
+        return payload
+
     def record(self, request):
         """
         :param request:
@@ -48,11 +57,18 @@ class BaseKunciLogMiddleware:
         log.api_id = request.api_id
         log.url = request.get_full_path()
         log.method = request.method
-        log.headers = request.headers
+        log.headers = self.to_preserve(
+            dict(request.headers),
+            self.SAFE_KEY_HEADER
+        )
         if request.method == 'GET':
             log.payload = request.GET
         else:
-            log.payload = get_request_body(request)
+            body = get_request_body(request)
+            log.payload = self.to_preserve(
+                body.copy(),
+                self.SAFE_KEY_BODY
+            )
         return log
 
 
@@ -72,3 +88,16 @@ class KunciServiceLogMiddleware(BaseKunciLogMiddleware):
 
     def get_api_id(self, request):
         return request.headers.get('X-API-ID')
+
+
+class KunciMultiLogMiddleware(BaseKunciLogMiddleware):
+    """
+    Middleware for initializing API_ID
+    or receiving API_ID from API Gateway.
+    """
+
+    def get_api_id(self, request):
+        api_id = request.headers.get('X-API-ID')
+        if not api_id:
+            return generate_api_id()
+        return api_id
