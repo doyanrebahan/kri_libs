@@ -124,3 +124,17 @@ class PaymentProxySerializer(ProxySerializer):
         return {
             'Authorization': settings.PAYMENT_AUTH_HEADER
         }
+
+
+class BackofficeProxySerializer(ProxySerializer):
+
+    def get_proxy_host(self):
+        return settings.BACKOFFICE_SERVICE_URL
+
+    def get_url_proxy(self) -> str:
+        return urljoin(self.get_proxy_host(), self.get_proxy_route())
+
+    def get_request_headers(self) -> dict:
+        return {
+            'Authorization': settings.BACKOFFICE_AUTH_HEADER
+        }
