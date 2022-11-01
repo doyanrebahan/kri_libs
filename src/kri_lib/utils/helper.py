@@ -19,7 +19,7 @@ class RequestHelper:
     @property
     def service_mapping(self):
         return [
-            {
+           {
                 "host": settings.SSO_SERVICE_URL,
                 "headers": {
                     "Authorization": settings.SSO_AUTH_HEADER
@@ -38,11 +38,6 @@ class RequestHelper:
                 "host": settings.WALLET_SERVICE_URL,
                 "headers": {
                     "Authorization": settings.WALLET_AUTH_HEADER
-                }
-            }, {
-                "host": settings.BACKOFFICE_SERVICE_URL,
-                "headers": {
-                    "Authorization": settings.BACKOFFICE_AUTH_HEADER
                 }
             },
         ]
@@ -127,3 +122,4 @@ class RequestHelper:
             route=route,
             **kwargs
         )
+
