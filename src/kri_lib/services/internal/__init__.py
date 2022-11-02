@@ -4,6 +4,7 @@ class InternalService:
     WALLET = 'WALLET'
     COMMERCE = 'COMMERCE'
     PAYMENT = 'PAYMENT'
+    BACKOFFICE = 'BACKOFFICE'
 
     @classmethod
     def use(cls, services: list):
@@ -13,12 +14,14 @@ class InternalService:
         from kri_lib.services.internal.wallet.conf import WalletServices
         from kri_lib.services.internal.commerce.conf import CommerceServices
         from kri_lib.services.internal.payment.conf import PaymentServices
+        from kri_lib.services.internal.backoffice.conf import BackofficeServices
 
         _mapping_class = dict([
             (cls.SSO, SSOServices),
             (cls.WALLET, WalletServices),
             (cls.COMMERCE, CommerceServices),
-            (cls.PAYMENT, PaymentServices)
+            (cls.PAYMENT, PaymentServices),
+            (cls.BACKOFFICE, BackofficeServices)
         ])
         ENABLED_SERVICES_CLASSES.clear()
         for service in services:
