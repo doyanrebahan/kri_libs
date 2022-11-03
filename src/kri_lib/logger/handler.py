@@ -5,10 +5,13 @@ from rest_framework.exceptions import APIException
 from kri_lib.conf import settings
 from .document import LogError
 from .notification import notify_to_slack
-from .utils import get_request_body
+from .utils import get_request_body, to_preserve
 
 
 class KunciDBLogHandler(Handler):
+
+    SAFE_KEY_HEADER = ['Authorization']
+    SAFE_KEY_BODY = ['password']
 
     def __init__(self, level=NOTSET):
         super(KunciDBLogHandler, self).__init__(level)
@@ -38,11 +41,18 @@ class KunciDBLogHandler(Handler):
         log.api_id = request.api_id
         log.url = request.get_full_path()
         log.method = request.method
-        log.headers = request.headers
+        log.headers = to_preserve(
+            dict(request.headers.copy()),
+            self.SAFE_KEY_HEADER
+        )
         if request.method == 'GET':
             log.payload = request.GET
         else:
-            log.payload = get_request_body(request)
+            body = get_request_body(request)
+            log.payload = to_preserve(
+                body.copy(),
+                self.SAFE_KEY_BODY
+            )
         stack_traces = self.format(record)
         log.stack_traces = stack_traces.split('\n')
         log.save()

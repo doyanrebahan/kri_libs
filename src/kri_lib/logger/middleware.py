@@ -2,7 +2,7 @@ from kri_lib.conf import settings
 from kri_lib.core import GLOBALS
 from kri_lib.logger import generate_api_id
 from kri_lib.logger.document import LogRequest
-from kri_lib.logger.utils import get_request_body
+from kri_lib.logger.utils import get_request_body, to_preserve
 
 
 class BaseKunciLogMiddleware:
@@ -40,12 +40,6 @@ class BaseKunciLogMiddleware:
     def get_api_id(self, request):
         raise NotImplementedError('get_api_id() must be overridden.')
 
-    def to_preserve(self, payload, safe_keys):
-        for key in safe_keys:
-            if key in payload.keys():
-                payload[key] = '*'*5
-        return payload
-
     def record(self, request):
         """
         :param request:
@@ -57,7 +51,7 @@ class BaseKunciLogMiddleware:
         log.api_id = request.api_id
         log.url = request.get_full_path()
         log.method = request.method
-        log.headers = self.to_preserve(
+        log.headers = to_preserve(
             dict(request.headers.copy()),
             self.SAFE_KEY_HEADER
         )
@@ -65,7 +59,7 @@ class BaseKunciLogMiddleware:
             log.payload = request.GET
         else:
             body = get_request_body(request)
-            log.payload = self.to_preserve(
+            log.payload = to_preserve(
                 body.copy(),
                 self.SAFE_KEY_BODY
             )
