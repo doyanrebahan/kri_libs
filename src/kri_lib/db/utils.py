@@ -24,21 +24,20 @@ class BaseLazyObject(LazyObject):
 
 class BaseLazyInstance:
 
+    lazy_object = BaseLazyObject()
+
     def __init__(self, instance=None):
         self.instance = instance
 
     def __enter__(self):
-        LazyInstance.set_object(self.instance, self.fields)
+        self.lazy_object.set_object(self.instance, self.fields)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        LazyInstance.clear()
+        self.lazy_object.clear()
 
     @property
     def fields(self):
         raise NotImplementedError('fields must be overridden.')
-
-
-LazyInstance = BaseLazyObject()
 
 
 def get_user(query: dict) -> dict:
