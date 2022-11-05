@@ -4,58 +4,41 @@ from .connection import connection
 from .exceptions import UserNotFoundError
 
 
-class _LazyInstance(LazyObject):
+class BaseLazyObject(LazyObject):
 
     def _setup(self):
         self._wrapped = empty
 
-    def initialize(self, model, kwargs):
-        try:
-            instance = model.objects.get(**kwargs)
-        except model.DoesNotExist:
-            self._wrapped = empty
-        except model.MultipleObjectsReturned:
-            raise ValueError('arguments required.')
-        else:
-            self._wrapped = instance
+    def get_field_object(self, instance, fields):
+        payload = {}
+        for field in fields:
+            payload[field] = getattr(instance, field)
+        return payload
 
-    def set_object(self, instance):
-        self._wrapped = instance
+    def set_object(self, instance, fields):
+        self._wrapped = self.get_field_object(instance, fields)
 
     def clear(self):
         self._wrapped = empty
 
 
-LazyInstance = _LazyInstance()
+class BaseLazyInstance:
 
-
-class LazyInstanceBlock:
-
-    def __init__(self, instance=None, model=None, **kwargs):
-        """
-        Retrieve LazyObject by instance, or by (model and args)
-        """
+    def __init__(self, instance=None):
         self.instance = instance
-        self.model = model
-        self.kwargs = kwargs
-        self._validate_arguments()
-
-    def _validate_arguments(self):
-        valid = any([self.instance, self.model])
-        if not valid:
-            raise ValueError('arguments required.')
 
     def __enter__(self):
-        if self.instance:
-            LazyInstance.set_object(self.instance)
-        else:
-            LazyInstance.initialize(
-                self.model,
-                self.kwargs.get('kwargs') or self.kwargs
-            )
+        LazyInstance.set_object(self.instance, self.fields)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         LazyInstance.clear()
+
+    @property
+    def fields(self):
+        raise NotImplementedError('fields must be overridden.')
+
+
+LazyInstance = BaseLazyObject()
 
 
 def get_user(query: dict) -> dict:
