@@ -4,40 +4,40 @@ from .connection import connection
 from .exceptions import UserNotFoundError
 
 
-class BaseLazyObject(LazyObject):
+class KRILazyObject(LazyObject):
 
     def _setup(self):
         self._wrapped = empty
 
-    def get_field_object(self, instance, fields):
-        payload = {}
-        for field in fields:
-            payload[field] = getattr(instance, field)
-        return payload
-
-    def set_object(self, instance, fields):
-        self._wrapped = self.get_field_object(instance, fields)
+    def set_object(self, instance):
+        self._wrapped = instance
 
     def clear(self):
         self._wrapped = empty
 
 
-class BaseLazyInstance:
+class KRILazySetter:
+    """
+    Override this class, and call var LazyObj for get values.
 
-    lazy_object = BaseLazyObject()
+    >>> MyLazyClass(KRILazySetter):
+            my_prop: str
+
+    >>> with MyLazyClass(instance=my_instance):
+            LazyObj.my_prop
+    """
 
     def __init__(self, instance=None):
         self.instance = instance
 
     def __enter__(self):
-        self.lazy_object.set_object(self.instance, self.fields)
+        LazyObj.set_object(self.instance)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.lazy_object.clear()
+        LazyObj.clear()
 
-    @property
-    def fields(self):
-        raise NotImplementedError('fields must be overridden.')
+
+LazyObj = KRILazyObject()
 
 
 def get_user(query: dict) -> dict:
