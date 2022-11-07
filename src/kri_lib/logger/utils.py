@@ -29,6 +29,13 @@ def get_request_body(request):
     return body
 
 
+def to_preserve(payload, safe_keys):
+    for key in safe_keys:
+        if key in payload.keys():
+            payload[key] = '*'*5
+    return payload
+
+
 def db_print(*values):
     query = {
         'service_name': settings.LOGGING.get('SERVICE_NAME'),
