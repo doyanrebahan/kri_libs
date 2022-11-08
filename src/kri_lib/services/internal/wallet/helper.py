@@ -22,6 +22,15 @@ def get_user_wallets(user_id):
     return data
 
 
+def get_user_wallet(user_id, wallet_type):
+    addresses = get_user_wallets(user_id)
+    if not addresses:
+        raise NotImplementedError('wallet address does not exists.')
+    return list(
+        filter(lambda wallet: wallet.get('wallet_type') == wallet_type, addresses)
+    )[0]
+
+
 class WalletProxyHelper(ProxyHelper):
 
     def __init__(self, request: Request, route: str):

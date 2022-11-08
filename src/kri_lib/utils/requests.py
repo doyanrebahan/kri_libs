@@ -1,8 +1,9 @@
+from requests import Response
 from requests.sessions import Session
 from kri_lib.core import GLOBALS
 
 
-def request(method, url, **kwargs):
+def request(method, url, **kwargs) -> Response:
     """Constructs and sends a :class:`Request <Request>`.
 
     :param method: method for the new :class:`Request` object: ``GET``, ``OPTIONS``, ``HEAD``, ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
