@@ -1,4 +1,5 @@
 import re
+import time
 from datetime import datetime
 from pathlib import Path
 from subprocess import check_output
@@ -101,3 +102,7 @@ def get_git_blame_email(file_path: str, line_number: str):
         if match:
             return match.group(0)
     return "Unknown"
+
+
+def to_diff_for_human(datetime: str):
+    return datetime.strftime(f'%a %d %b %y %H:%M:%S {time.localtime().tm_zone}')

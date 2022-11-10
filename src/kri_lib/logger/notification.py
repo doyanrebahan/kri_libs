@@ -4,19 +4,8 @@ from traceback import TracebackException
 import requests
 from kri_lib.conf import settings
 from kri_lib.core.globals import GLOBALS
-from .utils import get_traceback_info, get_git_branch, get_git_blame_email
-
-"""
-NOTE: github email can be multiple, just add the same slack's member_id
-mapping between github email and slack member_id
-"""
-SLACK_USERS_MAPPING = {
-    'rimba47prayoga@gmail.com': 'U03M580TMFA',
-    'm.rafly@kuncicoin.com': 'U03UH7ZMN7J',
-    'erhanburhanudin@gmail.com': 'U030P1P4DL6',
-    'a.fransisko@kuncicoin.com': 'U03L11LL5TJ',
-    'sdimasfarhan@gmail.com': 'U0318ADM0UR'
-}
+from .utils import get_traceback_info, get_git_branch, get_git_blame_email, to_diff_for_human
+from .document import Responsible
 
 
 def notify_to_slack(
@@ -30,10 +19,12 @@ def notify_to_slack(
         file_path=tb_info.get('file'),
         line_number=tb_info.get('line_number')
     )
-    member_id = SLACK_USERS_MAPPING.get(email)
+    member = Responsible().find_one({
+        'github_email': email
+    })
     service_name = settings.LOGGING.get('SERVICE_NAME')
-    if member_id:
-        responsible = f'<@{member_id}>'
+    if member:
+        responsible = f"<@{member.get('slack_id')}>"
     else:
         responsible = email
 
@@ -82,7 +73,7 @@ def notify_to_slack(
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"*Datetime:*\n{datetime.now()}"
+                    "text": f"*Datetime:*\n{to_diff_for_human(datetime.now())}"
                 }
             ]
         },
