@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from logging import Handler, LogRecord, NOTSET
 
 from rest_framework.exceptions import APIException
@@ -41,20 +43,16 @@ class KunciDBLogHandler(Handler):
         log.api_id = request.api_id
         log.url = request.get_full_path()
         log.method = request.method
-        log.headers = to_preserve(
-            dict(request.headers.copy()),
-            self.SAFE_KEY_HEADER
-        )
+        headers = dict(request.headers.copy())
+        log.headers = to_preserve(headers, self.SAFE_KEY_HEADER)
         if request.method == 'GET':
             log.payload = request.GET
         else:
             body = get_request_body(request)
-            log.payload = to_preserve(
-                body.copy(),
-                self.SAFE_KEY_BODY
-            )
+            log.payload = to_preserve(body.copy(), self.SAFE_KEY_BODY)
         stack_traces = self.format(record)
         log.stack_traces = stack_traces.split('\n')
+        log.timestamp = datetime.now()
         log.save()
         try:
             exc_class, exc_instance, tb = record.exc_info

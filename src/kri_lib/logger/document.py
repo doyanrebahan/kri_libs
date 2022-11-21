@@ -18,9 +18,14 @@ class BaseDocument:
             payload[field] = getattr(self, field)
         return payload
 
+    def connection(self):
+        return connection['log'][self.collection_name]
+
+    def find_one(self, search):
+        return (self.connection().find_one(search))
+
     def save(self):
-        return (connection['log'][self.collection_name]
-                .insert_one(self.get_payload_save()))
+        return (self.connection().insert_one(self.get_payload_save()))
 
 
 class BaseLogRequest(BaseDocument):
@@ -30,6 +35,7 @@ class BaseLogRequest(BaseDocument):
     headers: str
     payload: str
     api_id: str
+    timestamp: str
     response_status: int
 
     @property
@@ -41,6 +47,7 @@ class BaseLogRequest(BaseDocument):
             'headers',
             'payload',
             'api_id',
+            'timestamp',
             'response_status'
         ]
 
@@ -59,6 +66,7 @@ class LogError(BaseDocument):
     headers: dict
     payload: str
     api_id: str
+    timestamp: str
     stack_traces: list
 
     @property
@@ -70,5 +78,21 @@ class LogError(BaseDocument):
             'headers',
             'payload',
             'api_id',
+            'timestamp',
             'stack_traces'
+        ]
+
+
+class Responsible(BaseDocument):
+    """
+    Keep github email and slack's member_id who has responsibility
+    """
+    github_email: str
+    slack_id: str
+
+    @property
+    def fields(self):
+        return [
+            'github_email',
+            'slack_id'
         ]
