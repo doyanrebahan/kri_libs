@@ -35,6 +35,7 @@ class BaseLogRequest(BaseDocument):
     headers: str
     payload: str
     api_id: str
+    timestamp: str
     response_status: int
 
     @property
@@ -46,6 +47,7 @@ class BaseLogRequest(BaseDocument):
             'headers',
             'payload',
             'api_id',
+            'timestamp',
             'response_status'
         ]
 
@@ -64,6 +66,7 @@ class LogError(BaseDocument):
     headers: dict
     payload: str
     api_id: str
+    timestamp: str
     stack_traces: list
 
     @property
@@ -75,6 +78,7 @@ class LogError(BaseDocument):
             'headers',
             'payload',
             'api_id',
+            'timestamp',
             'stack_traces'
         ]
 

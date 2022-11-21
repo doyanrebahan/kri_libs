@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from kri_lib.conf import settings
 from kri_lib.core import GLOBALS
 from kri_lib.logger import generate_api_id
@@ -51,18 +53,14 @@ class BaseKunciLogMiddleware:
         log.api_id = request.api_id
         log.url = request.get_full_path()
         log.method = request.method
-        log.headers = to_preserve(
-            dict(request.headers.copy()),
-            self.SAFE_KEY_HEADER
-        )
+        headers = dict(request.headers.copy())
+        log.headers = to_preserve(headers, self.SAFE_KEY_HEADER)
         if request.method == 'GET':
             log.payload = request.GET
         else:
             body = get_request_body(request)
-            log.payload = to_preserve(
-                body.copy(),
-                self.SAFE_KEY_BODY
-            )
+            log.payload = to_preserve(body.copy(), self.SAFE_KEY_BODY)
+        log.timestamp = datetime.now()
         return log
 
 
