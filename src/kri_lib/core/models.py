@@ -1,4 +1,5 @@
 from urllib.parse import urljoin
+from uuid import UUID
 import requests
 from rest_framework import status
 
@@ -14,6 +15,8 @@ class VirtualModel:
     """
 
     def __init__(self, unique_id):
+        if isinstance(unique_id, UUID):
+            unique_id = str(unique_id)
         self.unique_id = unique_id
         if unique_id:
             self.bind()

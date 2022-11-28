@@ -10,7 +10,8 @@ OTPTypes = Literal[
     'SEND_WALLET',
     'REGISTER',
     'REGISTER_VENDOR',
-    'SWAP'
+    'SWAP',
+    'SEND_KUNCISOL'
 ]
 
 
