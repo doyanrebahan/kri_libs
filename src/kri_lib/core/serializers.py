@@ -12,6 +12,7 @@ class ProxySerializer(Serializer):
     def __init__(self, *args, **kwargs):
         super(ProxySerializer, self).__init__(*args, **kwargs)
         self.response = None  # type: Optional[dict]
+        self.response_instance = None
 
     def get_proxy_host(self):
         raise NotImplementedError("method get_proxy_host() must be overridden")
@@ -58,6 +59,7 @@ class ProxySerializer(Serializer):
                 'files': request.FILES
             })
         response = helper.request(**kwargs)
+        self.response_instance = response
         self.response = helper.get_json()
         return response
 
