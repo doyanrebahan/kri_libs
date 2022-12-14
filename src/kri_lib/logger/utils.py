@@ -104,5 +104,5 @@ def get_git_blame_email(file_path: str, line_number: str):
     return "Unknown"
 
 
-def to_diff_for_human(datetime: str):
-    return datetime.strftime(f'%a %d %b %y %H:%M:%S {time.localtime().tm_zone}')
+def to_diff_for_human(date_time: datetime) -> str:
+    return date_time.strftime(f'%a %d %b %Y %H:%M:%S {time.localtime().tm_zone}')

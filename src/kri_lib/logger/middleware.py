@@ -1,5 +1,7 @@
 from datetime import datetime
+from urllib.parse import urljoin
 
+import requests
 from kri_lib.conf import settings
 from kri_lib.core import GLOBALS
 from kri_lib.logger import generate_api_id
@@ -8,9 +10,6 @@ from kri_lib.logger.utils import get_request_body, to_preserve
 
 
 class BaseKunciLogMiddleware:
-    """
-    Middleware for initializing API ID.
-    """
 
     SAFE_KEY_HEADER = ['Authorization']
     SAFE_KEY_BODY = ['password']
@@ -28,43 +27,61 @@ class BaseKunciLogMiddleware:
             return self.get_response(request)
 
         GLOBALS.set('API_ID', request.api_id)
-        log = self.record(request)
+        log_payload = self.prepare_save(request)
         response = self.get_response(request)
-        log.response_status = response.status_code
-        log.save()
+        log_payload['response_status'] = response.status_code
+        self.record(payload=log_payload)
         GLOBALS.unset('API_ID')
         response['X-API-ID'] = request.api_id
         # Code to be executed for each request/response after
         # the view is called.
-
         return response
 
-    def get_api_id(self, request):
+    def get_api_id(self, request) -> str:
         raise NotImplementedError('get_api_id() must be overridden.')
 
-    def record(self, request):
-        """
-        :param request:
-        :return:
-        set attr only without saving.
-        """
-        log = LogRequest()
-        log.service_name = settings.LOGGING.get('SERVICE_NAME')
-        log.api_id = request.api_id
-        log.url = request.get_full_path()
-        log.method = request.method
-        headers = dict(request.headers.copy())
-        log.headers = to_preserve(headers, self.SAFE_KEY_HEADER)
+    def prepare_save(self, request) -> dict:
         if request.method == 'GET':
-            log.payload = request.GET
+            payload = request.GET
         else:
             body = get_request_body(request)
-            log.payload = to_preserve(body.copy(), self.SAFE_KEY_BODY)
-        log.timestamp = datetime.now()
-        return log
+            payload = to_preserve(body.copy(), self.SAFE_KEY_BODY)
+        return {
+            'service_name': settings.LOGGING.get('SERVICE_NAME'),
+            'api_id': request.api_id,
+            'url': request.get_full_path(),
+            'method': request.method,
+            'headers': to_preserve(
+                dict(request.headers.copy()),
+                self.SAFE_KEY_HEADER
+            ),
+            'payload': payload,
+            'timestamp': datetime.now()
+        }
+
+    def record(self, payload):
+        raise NotImplementedError
 
 
-class KunciInitLogMiddleware(BaseKunciLogMiddleware):
+class BaseKunciLogAPIMiddleware(BaseKunciLogMiddleware):
+
+    def record(self, payload):
+        url = urljoin(
+            settings.LOGGING.get('API').get('host'),
+            '/api/v1/log/log-request'
+        )
+        payload['timestamp'] = str(payload['timestamp'])
+        response = requests.post(
+            url=url,
+            json=payload,
+            headers={
+                'Authorization': settings.LOGGING.get('API').get('Authorization')
+            }
+        )
+        return response
+
+
+class KunciInitLogAPIMiddleware(BaseKunciLogAPIMiddleware):
     """
     Middleware for initializing API_ID.
     """
@@ -73,7 +90,7 @@ class KunciInitLogMiddleware(BaseKunciLogMiddleware):
         return generate_api_id()
 
 
-class KunciServiceLogMiddleware(BaseKunciLogMiddleware):
+class KunciServiceLogAPIMiddleware(BaseKunciLogAPIMiddleware):
     """
     Middleware for receiving API_ID from API Gateway.
     """
@@ -82,7 +99,52 @@ class KunciServiceLogMiddleware(BaseKunciLogMiddleware):
         return request.headers.get('X-API-ID')
 
 
-class KunciMultiLogMiddleware(BaseKunciLogMiddleware):
+class KunciMultiLogAPIMiddleware(BaseKunciLogAPIMiddleware):
+    """
+    Middleware for initializing API_ID
+    or receiving API_ID from API Gateway.
+    """
+
+    def get_api_id(self, request):
+        api_id = request.headers.get('X-API-ID')
+        if not api_id:
+            return generate_api_id()
+        return api_id
+
+
+class BaseKunciLogDBMiddleware(BaseKunciLogMiddleware):
+
+    def record(self, payload):
+        """
+        :param request:
+        :return:
+        set attr only without saving.
+        """
+        log = LogRequest()
+        for key, value in payload.items():
+            setattr(log, key, value)
+        return log
+
+
+class KunciInitLogMiddleware(BaseKunciLogDBMiddleware):
+    """
+    Middleware for initializing API_ID.
+    """
+
+    def get_api_id(self, request):
+        return generate_api_id()
+
+
+class KunciServiceLogMiddleware(BaseKunciLogDBMiddleware):
+    """
+    Middleware for receiving API_ID from API Gateway.
+    """
+
+    def get_api_id(self, request):
+        return request.headers.get('X-API-ID')
+
+
+class KunciMultiLogMiddleware(BaseKunciLogDBMiddleware):
     """
     Middleware for initializing API_ID
     or receiving API_ID from API Gateway.

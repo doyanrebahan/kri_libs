@@ -20,29 +20,29 @@ class RequestHelper:
     def service_mapping(self):
         return [
             {
-                "host": settings.SSO_SERVICE_URL,
+                "host": getattr(settings, "SSO_SERVICE_URL", ""),
                 "headers": {
-                    "Authorization": settings.SSO_AUTH_HEADER
+                    "Authorization": getattr(settings, "SSO_AUTH_HEADER", "")
                 }
             }, {
-                "host": settings.PAYMENT_SERVICE_URL,
+                "host": getattr(settings, "PAYMENT_SERVICE_URL", ""),
                 "headers": {
-                    "Authorization": settings.PAYMENT_AUTH_HEADER
+                    "Authorization": getattr(settings, "PAYMENT_AUTH_HEADER", "")
                 }
             }, {
-                "host": settings.COMMERCE_SERVICE_URL,
+                "host": getattr(settings, "COMMERCE_SERVICE_URL", ""),
                 "headers": {
-                    "Authorization": settings.COMMERCE_AUTH_HEADER
+                    "Authorization": getattr(settings, "COMMERCE_AUTH_HEADER", "")
                 }
             }, {
-                "host": settings.WALLET_SERVICE_URL,
+                "host": getattr(settings, "WALLET_SERVICE_URL" ""),
                 "headers": {
-                    "Authorization": settings.WALLET_AUTH_HEADER
+                    "Authorization": getattr(settings, "WALLET_AUTH_HEADER", "")
                 }
             }, {
-                "host": settings.BACKOFFICE_SERVICE_URL,
+                "host": getattr(settings, "BACKOFFICE_SERVICE_URL", ""),
                 "headers": {
-                    "Authorization": settings.BACKOFFICE_AUTH_HEADER
+                    "Authorization": getattr(settings, "BACKOFFICE_AUTH_HEADER", "")
                 }
             },
         ]

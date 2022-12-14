@@ -21,6 +21,10 @@ DEFAULT = {
     'LOGGING': {
         'SERVICE_NAME': '',
         'DATABASE': '',
+        'API': {
+            'host': '',
+            'Authorization': ''
+        },
         'SLACK': {
             'HOOKS_URL': ''
         }

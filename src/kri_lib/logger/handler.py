@@ -1,22 +1,29 @@
 from datetime import datetime
+from urllib.parse import urljoin
 
 from logging import Handler, LogRecord, NOTSET
 
+import requests
 from rest_framework.exceptions import APIException
 
 from kri_lib.conf import settings
 from .document import LogError
 from .notification import notify_to_slack
-from .utils import get_request_body, to_preserve
+from .utils import (
+    get_request_body,
+    to_preserve,
+    get_traceback_info,
+    get_git_branch,
+    get_git_blame_email
+)
 
 
-class KunciDBLogHandler(Handler):
-
+class BaseKunciLogHandler(Handler):
     SAFE_KEY_HEADER = ['Authorization']
     SAFE_KEY_BODY = ['password']
 
     def __init__(self, level=NOTSET):
-        super(KunciDBLogHandler, self).__init__(level)
+        super(BaseKunciLogHandler, self).__init__(level)
 
     def emit(self, record: LogRecord) -> None:
         """
@@ -36,24 +43,77 @@ class KunciDBLogHandler(Handler):
         except Exception:
             self.handleError(record)
 
-    def record_error(self, record: LogRecord):
+    def prepare_save(self, record: LogRecord):
         request = record.request
-        log = LogError()
-        log.service_name = settings.LOGGING.get('SERVICE_NAME')
-        log.api_id = request.api_id
-        log.url = request.get_full_path()
-        log.method = request.method
-        headers = dict(request.headers.copy())
-        log.headers = to_preserve(headers, self.SAFE_KEY_HEADER)
         if request.method == 'GET':
-            log.payload = request.GET
+            payload = request.GET
         else:
             body = get_request_body(request)
-            log.payload = to_preserve(body.copy(), self.SAFE_KEY_BODY)
+            payload = to_preserve(body.copy(), self.SAFE_KEY_BODY)
         stack_traces = self.format(record)
-        log.stack_traces = stack_traces.split('\n')
-        log.timestamp = datetime.now()
+        stack_traces = stack_traces.split('\n')
+        return {
+            "service_name": settings.LOGGING.get('SERVICE_NAME'),
+            "api_id": request.api_id,
+            "url": request.get_full_path(),
+            "method": request.method,
+            "headers": to_preserve(
+                dict(request.headers.copy()),
+                self.SAFE_KEY_HEADER
+            ),
+            "payload": payload,
+            "stack_traces": stack_traces,
+            "timestamp": datetime.now()
+        }
+
+    def record_error(self, record: LogRecord):
+        raise NotImplementedError("record_error() must be overriden.")
+
+
+class KunciLogAPIHandler(BaseKunciLogHandler):
+
+    def get_reports_payload(self, record: LogRecord) -> dict:
+        _, exc_instance, tb = record.exc_info
+        tb_info = get_traceback_info(tb)
+        email = get_git_blame_email(
+            file_path=tb_info.get('file'),
+            line_number=tb_info.get('line_number')
+        )
+        return {
+            'repr_exc': repr(exc_instance),
+            'email': email,
+            'branch': get_git_branch()
+        }
+
+    def record_error(self, record: LogRecord):
+        url = urljoin(
+            settings.LOGGING.get('API').get('host'),
+            '/api/v1/log/log-error'
+        )
+        payload = self.prepare_save(record).copy()
+        payload['timestamp'] = str(payload['timestamp'])
+        payload['reports'] = self.get_reports_payload(record)
+        response = requests.post(
+            url=url,
+            json=payload,
+            headers={
+                'Authorization': settings.LOGGING.get('API').get('Authorization')
+            }
+        )
+        return response
+
+
+class KunciDBLogHandler(BaseKunciLogHandler):
+
+    def record_error(self, record: LogRecord):
+        request = record.request
+        payload = self.prepare_save(record)
+        log = LogError()
+        for key, value in payload.items():
+            setattr(log, key, value)
         log.save()
+        stack_traces = self.format(record)
+
         try:
             exc_class, exc_instance, tb = record.exc_info
         except TypeError:
