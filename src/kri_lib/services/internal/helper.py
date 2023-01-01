@@ -52,10 +52,59 @@ class ProxyHelper:
             data = response.text
         self.data = data
         return Response(data, status=response.status_code)
+    
+    def put(self, payload=None):
+        url = self.get_full_path()
+        response = requests.put(url, headers=self.headers, data=self.request.POST)
+        try:
+            data = response.json()
+        except JSONDecodeError:
+            data = response.text
+        self.data = data
+        return Response(data, status=response.status_code)
 
     def delete(self):
         url = self.get_full_path()
         response = requests.delete(url, headers=self.headers)
+        try:
+            data = response.json()
+        except JSONDecodeError:
+            data = response.text
+        self.data = data
+        return Response(data, status=response.status_code)
+
+    def post_multipart_form(self, payload=None, files=None):
+        url = self.get_full_path()
+        request_files = self.request.FILES
+        if files:
+            request_files = files
+        response = requests.post(
+            url, headers=self.headers, data=self.request.POST, files=request_files)
+        try:
+            data = response.json()
+        except JSONDecodeError:
+            data = response.text
+        self.data = data
+        return Response(data, status=response.status_code)
+
+    def patch_multipart_form(self, payload=None):
+        url = self.get_full_path()
+        response = requests.patch(
+            url, headers=self.headers, data=self.request.POST, files=self.request.FILES)
+        try:
+            data = response.json()
+        except JSONDecodeError:
+            data = response.text
+        self.data = data
+        return Response(data, status=response.status_code)
+
+    def put_multipart_form(self, payload=None, files=None):
+        url = self.get_full_path()
+        request_files = self.request.FILES
+        if files:
+            request_files = files
+        response = requests.put(
+            url, headers=self.headers, data=self.request.POST, files=request_files)
         try:
             data = response.json()
         except JSONDecodeError:
