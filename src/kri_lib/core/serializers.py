@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from typing import Optional
 from urllib.parse import urljoin
 
@@ -38,6 +39,8 @@ class ProxySerializer(Serializer):
         for key, value in payload.copy().items():
             if isinstance(value, uuid.UUID):
                 payload[key] = value.hex
+            elif isinstance(value, Decimal):
+                payload[key] = str(value)
 
     def proxy(self, attrs):
         payload = self.get_payload(attrs)

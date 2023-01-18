@@ -3,6 +3,7 @@ from json.decoder import JSONDecodeError
 from urllib.parse import urljoin
 
 from django.conf import settings
+from requests.exceptions import ConnectionError
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.status import is_client_error
 
@@ -72,6 +73,7 @@ class RequestHelper:
                 messages = response.json()
                 if isinstance(messages, dict):
                     for key, value in messages.items():
+                        # TODO: fix this shit later.
                         raise ValidationError({
                             key: value
                         })
@@ -96,7 +98,7 @@ class RequestHelper:
             })
         try:
             response = requests.request(method=method, **kwargs)
-        except requests.exceptions.ConnectionError:
+        except ConnectionError:
             print(traceback.format_exc())
             raise APIException(
                 self.server_error_message(kwargs.get('url'))
