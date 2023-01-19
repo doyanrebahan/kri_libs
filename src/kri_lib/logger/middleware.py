@@ -118,11 +118,11 @@ class BaseKunciLogDBMiddleware(BaseKunciLogMiddleware):
         """
         :param request:
         :return:
-        set attr only without saving.
         """
         log = LogRequest()
         for key, value in payload.items():
             setattr(log, key, value)
+        log.save()
         return log
 
 
