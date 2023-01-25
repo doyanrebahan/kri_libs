@@ -4,7 +4,13 @@ from traceback import TracebackException
 import requests
 from kri_lib.conf import settings
 from kri_lib.core.globals import GLOBALS
-from .utils import get_traceback_info, get_git_branch, get_git_blame_email, to_diff_for_human
+from .utils import (
+    get_traceback_info,
+    get_git_branch,
+    get_git_blame_email,
+    to_diff_for_human,
+    get_git_summary
+)
 from .document import Responsible
 
 
@@ -76,6 +82,16 @@ def notify_to_slack(
                     "text": f"*Datetime:*\n{to_diff_for_human(datetime.now())}"
                 }
             ]
+        },
+        {
+            "type": "divider"
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": f"*Git Summary:*\n```{get_git_summary()}```"
+            }
         },
         {
             "type": "divider"

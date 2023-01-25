@@ -33,7 +33,7 @@ def get_request_body(request):
 def to_preserve(payload, safe_keys):
     for key in safe_keys:
         if key in payload.keys():
-            payload[key] = '*'*5
+            payload[key] = '*' * 5
     return payload
 
 
@@ -106,3 +106,11 @@ def get_git_blame_email(file_path: str, line_number: str):
 
 def to_diff_for_human(date_time: datetime) -> str:
     return date_time.strftime(f'%a %d %b %Y %H:%M:%S {time.localtime().tm_zone}')
+
+
+def get_git_summary():
+    commands = [
+        'git', 'show', '--summary'
+    ]
+    proc = check_output(commands).decode()
+    return proc
