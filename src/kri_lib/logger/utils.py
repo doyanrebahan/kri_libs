@@ -4,8 +4,10 @@ from datetime import datetime
 from pathlib import Path
 from subprocess import check_output
 from traceback import TracebackException
+from urllib.parse import urljoin
 from typing import Dict
 
+import requests
 from django.conf import settings as django_settings
 from kri_lib.conf import settings
 from kri_lib.core.globals import GLOBALS
@@ -44,6 +46,25 @@ def db_print(*values):
         'results': list(values)
     }
     connection['log'].log_print.insert_one(query)
+
+
+def log_print(*values):
+    query = {
+        'service_name': settings.LOGGING.get('SERVICE_NAME'),
+        'api_id': GLOBALS.API_ID,
+        'results': list(values)
+    }
+    url = urljoin(
+        settings.LOGGING.get('API').get('host'),
+        '/api/v1/log/log-print'
+    )
+    return requests.post(
+        url=url,
+        json=query,
+        headers={
+            'Authorization': settings.LOGGING.get('API').get('Authorization')
+        }
+    )
 
 
 def get_last_traceback(tb: TracebackException):

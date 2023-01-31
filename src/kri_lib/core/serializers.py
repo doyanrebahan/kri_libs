@@ -38,7 +38,7 @@ class ProxySerializer(Serializer):
     def _serialize_payload(self, payload):
         for key, value in payload.copy().items():
             if isinstance(value, uuid.UUID):
-                payload[key] = value.hex
+                payload[key] = str(value)
             elif isinstance(value, Decimal):
                 payload[key] = str(value)
 
