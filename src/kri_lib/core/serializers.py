@@ -50,7 +50,8 @@ class ProxySerializer(Serializer):
         kwargs = {
             "method": request.method.lower(),
             "url": self.get_url_proxy(),
-            "json": payload
+            "json": payload,
+            "headers": self.get_request_headers()
         }
         if request.FILES:
             kwargs.pop('json')

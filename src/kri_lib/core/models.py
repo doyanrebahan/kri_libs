@@ -1,4 +1,3 @@
-from urllib.parse import urljoin
 from uuid import UUID
 import requests
 from rest_framework import status
@@ -40,9 +39,8 @@ class VirtualModel:
         raise NotImplementedError("method get_request_headers() must be overridden.")
 
     def fetch(self) -> dict:
-        path = urljoin(self.get_url(), self.unique_id)
         response = requests.get(
-            url=path,
+            url=self.get_url(),
             headers=self.get_request_headers()
         )
         if response.status_code == status.HTTP_404_NOT_FOUND:
