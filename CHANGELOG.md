@@ -17,3 +17,7 @@
   - with django middleware
   - stored in mongodb
   - slack notification integrations
+
+## v0.4.0 (26/05/2024)
+
+- Change MongoDB to MySQL
