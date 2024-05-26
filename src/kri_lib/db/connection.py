@@ -1,5 +1,4 @@
-from pymongo import MongoClient
-
+import mysql.connector
 from kri_lib.conf.settings import settings
 
 """
@@ -22,17 +21,20 @@ class Connections:
         self.db_connections = {}
 
     def __getitem__(self, item):
-
         if isinstance(item, slice):
             raise AttributeError('cannot slice db connections.')
         if item not in self._db_conn_mapping:
             raise ValueError(f'{item} is not valid connection.')
 
         if item not in self.db_connections:
-            self.db_connections[item] = MongoClient(
-                self._db_conn_mapping[item],
-                uuidRepresentation='standard'
-            ).get_database()
+            config = self._db_conn_mapping[item]
+            self.db_connections[item] = mysql.connector.connect(
+                host=config['HOST'],
+                user=config['USER'],
+                password=config['PASSWORD'],
+                database=config['NAME'],
+                port=config.get('PORT', 3306)
+            )
         return self.db_connections[item]
 
 

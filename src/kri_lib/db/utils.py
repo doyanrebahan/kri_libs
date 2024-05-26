@@ -1,23 +1,22 @@
 from typing import Optional
 
-from django.utils.functional import empty, LazyObject
-from .connection import connection
-from .exceptions import UserNotFoundError
+from kri_lib.db.connection import connection
+from kri_lib.db.exceptions import UserNotFoundError
 
 
-class KRILazyObject(LazyObject):
+class KRILazyObject:
     """
     override and define your props.
     """
 
-    def _setup(self):
-        self._wrapped = empty
+    def __init__(self):
+        self._wrapped = None
 
     def set_object(self, instance):
         self._wrapped = instance
 
     def clear(self):
-        self._wrapped = empty
+        self._wrapped = None
 
 
 class KRILazySetter:
@@ -48,7 +47,11 @@ class KRILazySetter:
 
 
 def get_user(query: dict) -> dict:
-    user = connection['default'].user.find_one(query)  # type: dict
+    cursor = connection['default'].cursor(dictionary=True)
+    query['user_uuid'] = query['user_uuid'].replace("-", "")
+    cursor.execute("SELECT * FROM user_user WHERE user_uuid = %s", (query['user_uuid'],))
+    user = cursor.fetchone()
+    cursor.close()
     if not user:
         raise UserNotFoundError(f"Cannot find user with: {query}")
     return user

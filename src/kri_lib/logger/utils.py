@@ -45,7 +45,18 @@ def db_print(*values):
         'api_id': GLOBALS.API_ID,
         'results': list(values)
     }
-    connection['log'].log_print.insert_one(query)
+    # connection['log'].log_print.insert_one(query)
+    url = urljoin(
+        settings.LOGGING.get('API').get('host'),
+        '/api/v1/log/log-print'
+    )
+    return requests.post(
+        url=url,
+        json=query,
+        headers={
+            'Authorization': settings.LOGGING.get('API').get('Authorization')
+        }
+    )
 
 
 def log_print(*values):
