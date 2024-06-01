@@ -73,17 +73,24 @@ class BaseKunciLogHandler(Handler):
 class KunciLogAPIHandler(BaseKunciLogHandler):
 
     def get_reports_payload(self, record: LogRecord) -> dict:
-        _, exc_instance, tb = record.exc_info
-        tb_info = get_traceback_info(tb)
-        email = get_git_blame_email(
-            file_path=tb_info.get('file'),
-            line_number=tb_info.get('line_number')
-        )
-        return {
-            'repr_exc': repr(exc_instance),
-            'email': email,
-            'branch': get_git_branch()
-        }
+        if record.exc_info:
+            _, exc_instance, tb = record.exc_info
+            tb_info = get_traceback_info(tb)
+            email = get_git_blame_email(
+                file_path=tb_info.get('file'),
+                line_number=tb_info.get('line_number')
+            )
+            return {
+                'repr_exc': repr(exc_instance),
+                'email': email,
+                'branch': get_git_branch()
+            }
+        else:
+            return {
+                'repr_exc': None,
+                'email': None,
+                'branch': get_git_branch()
+            }
 
     def record_error(self, record: LogRecord):
         url = urljoin(
